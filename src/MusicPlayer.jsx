@@ -17,21 +17,13 @@ const MusicPlayer = () => {
       artist: "AGAINST THE CURRENT",
       audioSrc: "/songs/song1.mp3",
     },
-    {
-      title: "RAP GOD",
-      artist: "EMINEM",
-      audioSrc: "/songs/song2.mp3",
-    },
+    { title: "RAP GOD", artist: "EMINEM", audioSrc: "/songs/song2.mp3" },
     {
       title: "THE MONSTER",
       artist: "EMINEM/ RIHANNA",
       audioSrc: "/songs/song3.mp3",
     },
-    {
-      title: "LOSE YOURSELF",
-      artist: "EMINEM",
-      audioSrc: "/songs/song4.mp3",
-    },
+    { title: "LOSE YOURSELF", artist: "EMINEM", audioSrc: "/songs/song4.mp3" },
     {
       title: "ILLUSIONARY DAYTIME",
       artist: "SHIRANE",
@@ -44,9 +36,15 @@ const MusicPlayer = () => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
-  const audioRef = useRef(new Audio(playlist[currentSongIndex].audioSrc));
+  const audioRef = useRef(null);
 
   useEffect(() => {
+    if (!audioRef.current) {
+      audioRef.current = new Audio(playlist[currentSongIndex].audioSrc);
+    } else {
+      audioRef.current.src = playlist[currentSongIndex].audioSrc;
+    }
+
     const audio = audioRef.current;
 
     const setAudioData = () => {
@@ -56,44 +54,56 @@ const MusicPlayer = () => {
 
     const setAudioTime = () => setCurrentTime(audio.currentTime);
 
-    // Add event listeners
+    const handleEnded = () => {
+      playNextSong();
+    };
+
     audio.addEventListener("loadeddata", setAudioData);
     audio.addEventListener("timeupdate", setAudioTime);
-    audio.addEventListener("ended", playNextSong); // Listen for the end of the song
-    // Play audio if isPlaying is true
-    if (isPlaying) audio.play();
+    audio.addEventListener("ended", handleEnded);
+
+    if (isPlaying) {
+      audio.play().catch((error) => console.error("Playback failed", error));
+    }
 
     return () => {
-      // Remove event listeners
       audio.removeEventListener("loadeddata", setAudioData);
       audio.removeEventListener("timeupdate", setAudioTime);
-      audio.removeEventListener("ended", playNextSong); // Clean up
+      audio.removeEventListener("ended", handleEnded);
     };
-  }, [isPlaying]);
+  }, [currentSongIndex, isPlaying]);
 
   useEffect(() => {
-    audioRef.current.src = playlist[currentSongIndex].audioSrc;
-    if (isPlaying) audioRef.current.play();
+    if (audioRef.current) {
+      audioRef.current.src = playlist[currentSongIndex].audioSrc;
+      if (isPlaying) {
+        audioRef.current
+          .play()
+          .catch((error) => console.error("Playback failed", error));
+      }
+    }
   }, [currentSongIndex, playlist]);
 
   const togglePlay = () => {
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play();
+      audioRef.current
+        .play()
+        .catch((error) => console.error("Playback failed", error));
     }
     setIsPlaying(!isPlaying);
   };
 
-  function playNextSong() {
+  const playNextSong = () => {
     setCurrentSongIndex((prevIndex) => (prevIndex + 1) % playlist.length);
-  }
+  };
 
-  function playPreviousSong() {
+  const playPreviousSong = () => {
     setCurrentSongIndex(
       (prevIndex) => (prevIndex - 1 + playlist.length) % playlist.length
     );
-  }
+  };
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
@@ -109,7 +119,21 @@ const MusicPlayer = () => {
     audioRef.current.currentTime = progressPercentage * duration;
   };
 
-  const currentSong = playlist[currentSongIndex];
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files);
+    const newPlaylist = files.map((file) => ({
+      title: file.name,
+      artist: "Unknown",
+      audioSrc: URL.createObjectURL(file),
+    }));
+    setPlaylist(newPlaylist);
+    setCurrentSongIndex(0); // Reset to the first song
+  };
+
+  const currentSong = playlist[currentSongIndex] || {
+    title: "No song",
+    artist: "Unknown",
+  };
 
   return (
     <div className="bg-slate-900 text-gray-300 h-screen flex flex-col">
@@ -173,6 +197,17 @@ const MusicPlayer = () => {
         <button onClick={playNextSong}>
           <SkipForward className="w-8 h-8" />
         </button>
+      </div>
+
+      {/* File Input */}
+      <div className="px-4 mb-4">
+        <input
+          type="file"
+          accept="audio/*"
+          multiple
+          onChange={handleFileChange}
+          className="bg-gray-700 text-gray-300 p-2 rounded"
+        />
       </div>
 
       {/* Playlist */}
