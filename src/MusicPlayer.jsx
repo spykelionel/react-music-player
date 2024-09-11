@@ -59,7 +59,7 @@ const MusicPlayer = () => {
     // Add event listeners
     audio.addEventListener("loadeddata", setAudioData);
     audio.addEventListener("timeupdate", setAudioTime);
-
+    audio.addEventListener("ended", playNextSong); // Listen for the end of the song
     // Play audio if isPlaying is true
     if (isPlaying) audio.play();
 
@@ -67,6 +67,7 @@ const MusicPlayer = () => {
       // Remove event listeners
       audio.removeEventListener("loadeddata", setAudioData);
       audio.removeEventListener("timeupdate", setAudioTime);
+      audio.removeEventListener("ended", playNextSong); // Clean up
     };
   }, [isPlaying]);
 
@@ -84,22 +85,15 @@ const MusicPlayer = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const playNextSong = () => {
+  function playNextSong() {
     setCurrentSongIndex((prevIndex) => (prevIndex + 1) % playlist.length);
-  };
+  }
 
-  // play the next song after the current song has finished
-  useEffect(() => {
-    if (duration == currentTime) {
-      playNextSong();
-    }
-  }, [currentTime, duration]);
-
-  const playPreviousSong = () => {
+  function playPreviousSong() {
     setCurrentSongIndex(
       (prevIndex) => (prevIndex - 1 + playlist.length) % playlist.length
     );
-  };
+  }
 
   const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
