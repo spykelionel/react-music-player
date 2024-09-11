@@ -1,5 +1,7 @@
 # Music App
 
+Live on [Music Player](https://react-music-player-azure-nine.vercel.app/)
+
 ## Overview
 
 This repository contains a modern music player application built with React and Vite. The app provides a responsive and engaging user interface for managing and enjoying your music library.
