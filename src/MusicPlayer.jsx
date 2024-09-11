@@ -88,6 +88,13 @@ const MusicPlayer = () => {
     setCurrentSongIndex((prevIndex) => (prevIndex + 1) % playlist.length);
   };
 
+  // play the next song after the current song has finished
+  useEffect(() => {
+    if (duration == currentTime) {
+      playNextSong();
+    }
+  }, [currentTime, duration]);
+
   const playPreviousSong = () => {
     setCurrentSongIndex(
       (prevIndex) => (prevIndex - 1 + playlist.length) % playlist.length
@@ -100,14 +107,12 @@ const MusicPlayer = () => {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Seek function
-  const handleSeek = (e) => {
-    const progressBar = e.target;
+  const handleProgressBarClick = (event) => {
+    const progressBar = event.target;
     const rect = progressBar.getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const seekTime = (offsetX / rect.width) * duration;
-    audioRef.current.currentTime = seekTime;
-    setCurrentTime(seekTime);
+    const offsetX = event.clientX - rect.left;
+    const progressPercentage = offsetX / progressBar.clientWidth;
+    audioRef.current.currentTime = progressPercentage * duration;
   };
 
   const currentSong = playlist[currentSongIndex];
@@ -136,16 +141,22 @@ const MusicPlayer = () => {
         <p className="text-gray-500">{currentSong.artist}</p>
       </div>
 
-      {/* Progress Bar with Seek */}
+      {/* Progress Bar */}
       <div className="px-4 mb-4">
         <div
-          className="bg-gray-700 h-1 rounded-full cursor-pointer"
-          onClick={handleSeek}
+          className="bg-gray-700 h-1 rounded-full relative cursor-pointer"
+          onClick={handleProgressBarClick}
         >
           <div
             className="bg-orange-500 h-1 rounded-full"
             style={{ width: `${(currentTime / duration) * 100}%` }}
           ></div>
+          <div
+            className="absolute top-1/2 h-5 w-5 left-[-10px] transform -translate-y-1/2 bg-orange-600 text-white text-xs px-2 py-1 rounded-full"
+            style={{ left: `${(currentTime / duration) * 100}%` }}
+          >
+            {/* {formatTime(currentTime)} */}
+          </div>
         </div>
         <div className="flex justify-between text-sm mt-1">
           <span>{formatTime(currentTime)}</span>
