@@ -9,11 +9,12 @@ const SongList = ({
   isPlaying,
   onPlayPause,
   isPlaylistVisible,
+  searchTerm,
   onTogglePlaylist,
 }) => (
   <div className="bg-[#30353D] rounded-t-3xl p-4">
     <div className="flex justify-between items-center mb-4 transition-transform duration-300 ease-in-out">
-      {isPlaylistVisible ? (
+      {isPlaylistVisible || searchTerm?.length > 0 ? (
         <ChevronDown
           className="cursor-pointer w-6 h-6"
           onClick={onTogglePlaylist}
@@ -27,7 +28,7 @@ const SongList = ({
       <span className="font-bold">Up Next</span>
       <Heart className="w-6 h-6" />
     </div>
-    {isPlaylistVisible && (
+    {(isPlaylistVisible || searchTerm?.length > 0) && (
       <ul>
         {playlist.map((song, index) => (
           <Song

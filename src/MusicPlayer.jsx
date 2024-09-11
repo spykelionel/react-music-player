@@ -1,4 +1,4 @@
-import { FolderPlus, Search } from "lucide-react";
+import { FolderPlus, Search, XIcon } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import Controls from "./components/Controls";
 import Header from "./components/Header";
@@ -39,8 +39,14 @@ const MusicPlayer = () => {
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio(playlist[currentSongIndex].audioSrc);
-    } else {
+    } else if (audioRef.current.src !== playlist[currentSongIndex].audioSrc) {
+      const wasPlaying = !audioRef.current.paused;
       audioRef.current.src = playlist[currentSongIndex].audioSrc;
+      if (wasPlaying) {
+        audioRef.current
+          .play()
+          .catch((error) => console.error("Playback failed", error));
+      }
     }
 
     const audio = audioRef.current;
@@ -60,16 +66,12 @@ const MusicPlayer = () => {
     audio.addEventListener("timeupdate", setAudioTime);
     audio.addEventListener("ended", handleEnded);
 
-    if (isPlaying) {
-      audio.play().catch((error) => console.error("Playback failed", error));
-    }
-
     return () => {
       audio.removeEventListener("loadeddata", setAudioData);
       audio.removeEventListener("timeupdate", setAudioTime);
       audio.removeEventListener("ended", handleEnded);
     };
-  }, [currentSongIndex, isPlaying]);
+  }, [currentSongIndex, playlist]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -106,16 +108,6 @@ const MusicPlayer = () => {
     );
   };
 
-  const formatTime = (time) => {
-    const hours = Math.floor(time / 3600);
-    const minutes = Math.floor((time % 3600) / 60);
-    const seconds = Math.floor(time % 60);
-
-    return `${hours > 0 ? `${hours}:` : ""}${minutes
-      .toString()
-      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-  };
-
   const handleProgressBarClick = (event) => {
     const progressBar = event.target;
     const rect = progressBar.getBoundingClientRect();
@@ -124,15 +116,46 @@ const MusicPlayer = () => {
     audioRef.current.currentTime = progressPercentage * duration;
   };
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const files = Array.from(event.target.files);
-    const newPlaylist = files.map((file) => ({
-      title: file.name,
-      artist: "Unknown",
-      audioSrc: URL.createObjectURL(file),
-    }));
-    setPlaylist(newPlaylist);
-    setCurrentSongIndex(0); // Reset to the first song
+    if (files.length === 0) return; // Exit if no files were selected
+
+    // Use a single AudioContext for all files
+    const audioContext = new (window.AudioContext ||
+      window.webkitAudioContext)();
+
+    const newPlaylist = await Promise.all(
+      files.map(async (file) => {
+        let title = file.name.replace(/\.[^/.]+$/, "");
+        let artist = "Unknown";
+        let duration = 0;
+
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          // Use async/await here to prevent blocking the main thread
+          const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+          duration = audioBuffer.duration;
+
+          // Attempt to extract metadata from file name
+          const fileNameParts = title.split("-").map((part) => part.trim());
+          if (fileNameParts.length >= 2) {
+            artist = fileNameParts[0];
+            title = fileNameParts.slice(1).join(" ");
+          }
+        } catch (error) {
+          console.error("Error processing audio file:", error);
+        }
+
+        return {
+          title,
+          artist,
+          duration,
+          audioSrc: URL.createObjectURL(file),
+        };
+      })
+    );
+
+    setPlaylist((prevPlaylist) => [...prevPlaylist, ...newPlaylist]);
   };
 
   const currentSong = playlist[currentSongIndex] || {
@@ -202,17 +225,26 @@ const MusicPlayer = () => {
         <input
           type="text"
           id="search"
+          value={searchTerm}
           name="search"
           onChange={(e) => setSearchTerm(e.target.value)}
           placeholder="search"
           className="p-2  rounded-2xl placeholder:text-orange-500 text-orange-500 border border-[#EC540E] w-[95%]"
         />
         <label htmlFor="">
-          <Search className="cursor-pointer text-[#EC540E]" />
+          {searchTerm?.length > 0 ? (
+            <XIcon
+              className="cursor-pointer text-[#EC540E]"
+              onClick={(_) => setSearchTerm("")}
+            />
+          ) : (
+            <Search className="cursor-pointer text-[#EC540E]" />
+          )}
         </label>
       </div>
 
       <SongList
+        searchTerm={searchTerm}
         playlist={searchTerm.length > 1 ? filteredPlaylist : playlist}
         currentSongIndex={currentSongIndex}
         onSongSelect={setCurrentSongIndex}
