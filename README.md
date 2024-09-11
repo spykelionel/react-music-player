@@ -34,7 +34,7 @@ This repository contains a modern music player application built with React and 
    docker-compose up --build
    ```
 
-   This will build the Docker image and start the container. The application will be accessible at `http://localhost:5173`.
+   This will build the Docker image and start the container. The application will be accessible at `http://localhost:3000`.
 
 ### Direct Docker Commands
 
@@ -49,10 +49,10 @@ If you prefer to build and run the Docker image manually, follow these steps:
 2. **Run the Docker Container**:
 
    ```bash
-   docker run -p 5173:3000 react-music-player-client
+   docker run -p 3000:3000 react-music-player-client
    ```
 
-   This maps port `5173` on your host to port `3000` inside the container, allowing you to access the app at `http://localhost:5173`.
+   This maps port `3000` on your host to port `3000` inside the container, allowing you to access the app at `http://localhost:3000`.
 
 ## Docker Image
 
@@ -69,5 +69,5 @@ docker pull spykelionel/music_app:latest
 After pulling the image, you can run it with:
 
 ```bash
-docker run -p 5173:3000 spykelionel/music_app:latest
+docker run -p 3000:3000 spykelionel/music_app:latest
 ```
