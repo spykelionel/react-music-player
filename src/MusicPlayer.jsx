@@ -100,6 +100,16 @@ const MusicPlayer = () => {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  // Seek function
+  const handleSeek = (e) => {
+    const progressBar = e.target;
+    const rect = progressBar.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const seekTime = (offsetX / rect.width) * duration;
+    audioRef.current.currentTime = seekTime;
+    setCurrentTime(seekTime);
+  };
+
   const currentSong = playlist[currentSongIndex];
 
   return (
@@ -126,9 +136,12 @@ const MusicPlayer = () => {
         <p className="text-gray-500">{currentSong.artist}</p>
       </div>
 
-      {/* Progress Bar */}
+      {/* Progress Bar with Seek */}
       <div className="px-4 mb-4">
-        <div className="bg-gray-700 h-1 rounded-full">
+        <div
+          className="bg-gray-700 h-1 rounded-full cursor-pointer"
+          onClick={handleSeek}
+        >
           <div
             className="bg-orange-500 h-1 rounded-full"
             style={{ width: `${(currentTime / duration) * 100}%` }}
