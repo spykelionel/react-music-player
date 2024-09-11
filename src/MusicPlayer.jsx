@@ -1,14 +1,9 @@
-import {
-  ChevronDown,
-  ChevronLeft,
-  Heart,
-  MoreVertical,
-  Pause,
-  Play,
-  SkipBack,
-  SkipForward,
-} from "lucide-react";
+import { FolderPlus, Search } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
+import Controls from "./components/Controls";
+import Header from "./components/Header";
+import ProgressBar from "./components/ProgressBar";
+import SongList from "./components/SongList";
 
 const MusicPlayer = () => {
   const [playlist, setPlaylist] = useState([
@@ -33,6 +28,9 @@ const MusicPlayer = () => {
 
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaylistVisible, setIsPlaylistVisible] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -94,6 +92,9 @@ const MusicPlayer = () => {
     }
     setIsPlaying(!isPlaying);
   };
+  const togglePlaylistVisibility = () => {
+    setIsPlaylistVisible(!isPlaylistVisible);
+  };
 
   const playNextSong = () => {
     setCurrentSongIndex((prevIndex) => (prevIndex + 1) % playlist.length);
@@ -106,9 +107,13 @@ const MusicPlayer = () => {
   };
 
   const formatTime = (time) => {
-    const minutes = Math.floor(time / 60);
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+
+    return `${hours > 0 ? `${hours}:` : ""}${minutes
+      .toString()
+      .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const handleProgressBarClick = (event) => {
@@ -135,21 +140,27 @@ const MusicPlayer = () => {
     artist: "Unknown",
   };
 
+  const handleSearchChange = (event) => {
+    setSearchTerm(event.target.value.toLowerCase());
+  };
+
+  const filteredPlaylist = playlist.filter(
+    (song) =>
+      song.title.toLowerCase().includes(searchTerm) ||
+      song.artist.toLowerCase().includes(searchTerm)
+  );
+
   return (
-    <div className="bg-slate-900 text-gray-300 h-screen flex flex-col">
+    <div className="bg-[#2C3137] text-[#999999] h-screen flex flex-col">
       {/* Header */}
-      <div className="flex justify-between items-center p-4">
-        <ChevronLeft className="w-6 h-6" />
-        <h1 className="text-lg font-bold">{currentSong.title}</h1>
-        <MoreVertical className="w-6 h-6" />
-      </div>
+      <Header title={currentSong.title} />
 
       {/* Album Art */}
       <div className="flex-grow flex justify-center items-center p-4">
         <img
-          src="/api/placeholder/300/300"
+          src="/play.svg"
           alt="Album cover"
-          className="w-64 h-64 rounded-full border border-orange-500"
+          className="w-64 h-64 rounded-full"
         />
       </div>
 
@@ -159,86 +170,57 @@ const MusicPlayer = () => {
         <p className="text-gray-500">{currentSong.artist}</p>
       </div>
 
-      {/* Progress Bar */}
-      <div className="px-4 mb-4">
-        <div
-          className="bg-gray-700 h-1 rounded-full relative cursor-pointer"
-          onClick={handleProgressBarClick}
-        >
-          <div
-            className="bg-orange-500 h-1 rounded-full"
-            style={{ width: `${(currentTime / duration) * 100}%` }}
-          ></div>
-          <div
-            className="absolute top-1/2 h-5 w-5 left-[-10px] transform -translate-y-1/2 bg-orange-600 text-white text-xs px-2 py-1 rounded-full"
-            style={{ left: `${(currentTime / duration) * 100}%` }}
-          >
-            {/* {formatTime(currentTime)} */}
-          </div>
-        </div>
-        <div className="flex justify-between text-sm mt-1">
-          <span>{formatTime(currentTime)}</span>
-          <span>{formatTime(duration)}</span>
-        </div>
-      </div>
+      <ProgressBar
+        currentTime={currentTime}
+        duration={duration}
+        onProgressBarClick={handleProgressBarClick}
+      />
 
-      {/* Controls */}
-      <div className="flex justify-center items-center space-x-8 mb-8">
-        <button onClick={playPreviousSong}>
-          <SkipBack className="w-8 h-8" />
-        </button>
-        <button onClick={togglePlay} className="bg-orange-500 rounded-full p-4">
-          {isPlaying ? (
-            <Pause className="w-8 h-8 text-white" fill="white" />
-          ) : (
-            <Play className="w-8 h-8 text-white" fill="white" />
-          )}
-        </button>
-        <button onClick={playNextSong}>
-          <SkipForward className="w-8 h-8" />
-        </button>
-      </div>
+      <Controls
+        isPlaying={isPlaying}
+        onPlayPause={togglePlay}
+        onPrevious={playPreviousSong}
+        onNext={playNextSong}
+      />
 
+      <div className="px-4 mb-4 flex justify-end">
+        <label htmlFor="songs">
+          <FolderPlus className="cursor-pointer text-[#EC540E]" />
+        </label>
+      </div>
       {/* File Input */}
-      <div className="px-4 mb-4">
+      <div className="px-4 mb-4 flex justify-between items-center">
         <input
           type="file"
           accept="audio/*"
+          name="songs"
+          id="songs"
           multiple
           onChange={handleFileChange}
-          className="bg-gray-700 text-gray-300 p-2 rounded"
+          className="bg-gray-700 text-gray-300 p-2 hidden"
         />
+        <input
+          type="text"
+          id="search"
+          name="search"
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="search"
+          className="p-2  rounded-2xl placeholder:text-orange-500 text-orange-500 border border-[#EC540E] w-[95%]"
+        />
+        <label htmlFor="">
+          <Search className="cursor-pointer text-[#EC540E]" />
+        </label>
       </div>
 
-      {/* Playlist */}
-      <div className="bg-slate-800 rounded-t-3xl p-4">
-        <div className="flex justify-between items-center mb-4">
-          <ChevronDown className="w-6 h-6" />
-          <span className="font-bold">Up Next</span>
-          <Heart className="w-6 h-6" />
-        </div>
-        <ul>
-          {playlist.map((song, index) => (
-            <li
-              key={index}
-              className={`py-2 ${
-                index === currentSongIndex ? "text-orange-500" : ""
-              }`}
-              onClick={() => setCurrentSongIndex(index)}
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <p className="font-bold">{song.title}</p>
-                  <p className="text-sm text-gray-500">{song.artist}</p>
-                </div>
-                {index === currentSongIndex && (
-                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                )}
-              </div>
-            </li>
-          ))}
-        </ul>
-      </div>
+      <SongList
+        playlist={searchTerm.length > 1 ? filteredPlaylist : playlist}
+        currentSongIndex={currentSongIndex}
+        onSongSelect={setCurrentSongIndex}
+        isPlaying={isPlaying}
+        onPlayPause={togglePlay}
+        isPlaylistVisible={isPlaylistVisible}
+        onTogglePlaylist={() => setIsPlaylistVisible(!isPlaylistVisible)}
+      />
     </div>
   );
 };
