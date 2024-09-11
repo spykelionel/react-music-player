@@ -1,0 +1,7 @@
+services:
+  client:
+    build: .
+    container_name: music_app
+    ports:
+      - "3000:3000"
+    network_mode: "bridge"
