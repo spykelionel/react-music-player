@@ -15,46 +15,31 @@ const MusicPlayer = () => {
     {
       title: "LEGENDS NEVER DIE",
       artist: "AGAINST THE CURRENT",
-      audioSrc: "./songs/3 Doors Down - Kryptonite (Official Video).mp3",
+      audioSrc: "/songs/song1.mp3",
     },
     {
       title: "RAP GOD",
       artist: "EMINEM",
-      audioSrc: "./songs/3 Doors Down - Kryptonite (Official Video).mp3",
+      audioSrc: "/songs/song2.mp3",
     },
     {
       title: "THE MONSTER",
       artist: "EMINEM/ RIHANNA",
-      audioSrc: "./songs/3 Doors Down - Kryptonite (Official Video).mp3",
+      audioSrc: "/songs/song3.mp3",
     },
     {
       title: "LOSE YOURSELF",
       artist: "EMINEM",
-      audioSrc: "src/songs\x03 Doors Down - Kryptonite (Official Video).mp3",
+      audioSrc: "/songs/song4.mp3",
     },
     {
       title: "ILLUSIONARY DAYTIME",
       artist: "SHIRANE",
-      audioSrc: "src/songs\x03 Doors Down - Kryptonite (Official Video).mp3",
-    },
-    {
-      title: "LOYAL",
-      artist: "ODESZA",
-      audioSrc: "src/songs\x03 Doors Down - Kryptonite (Official Video).mp3",
-    },
-    {
-      title: "LOSER",
-      artist: "BIGBANG",
-      audioSrc: "src/songs\x03 Doors Down - Kryptonite (Official Video).mp3",
-    },
-    {
-      title: "FIVE HUNDRED MILES",
-      artist: "UNKNOWN",
-      audioSrc: "src/songs\x03 Doors Down - Kryptonite (Official Video).mp3",
+      audioSrc: "/songs/song5.mp3",
     },
   ]);
 
-  const [currentSongIndex, setCurrentSongIndex] = useState(2); // Start with "THE MONSTER"
+  const [currentSongIndex, setCurrentSongIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
