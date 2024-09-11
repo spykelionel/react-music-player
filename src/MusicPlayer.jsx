@@ -163,10 +163,6 @@ const MusicPlayer = () => {
     artist: "Unknown",
   };
 
-  const handleSearchChange = (event) => {
-    setSearchTerm(event.target.value.toLowerCase());
-  };
-
   const filteredPlaylist = playlist.filter(
     (song) =>
       song.title.toLowerCase().includes(searchTerm) ||
