@@ -3,5 +3,5 @@ services:
     build: .
     container_name: music_app
     ports:
-      - "3000:3000"
+      - "3000:80"
     network_mode: "bridge"
