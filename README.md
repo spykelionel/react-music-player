@@ -1,6 +1,6 @@
 # Music App
 
-Live on [Music Player](https://react-music-player-azure-nine.vercel.app/)
+Live on [Music Player](https://playride.netlify.app/)
 
 ## Overview
 
